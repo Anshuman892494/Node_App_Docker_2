@@ -1,0 +1,24 @@
+name: Docker Image CD
+
+on:
+  workflow_run:
+    workflows: ["Docker Image CI"]
+    types: 
+      - completed
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Deploy to Server EC2
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{secrets.EC2_HOST}}
+        username: ${{secrets.EC2_USERNAME}}
+        key: ${{secrets.EC2_SSH_KEY}}
+        script: |
+          docker pull anshuman892494/node-app:latest
+          docker rm -f node-app || true
+          docker run -d -p 4000:4000 --name node-app anshuman892494/node-app:latest
